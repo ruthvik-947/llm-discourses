@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LLM Discourses</title>
+    <style>
+      :root {
+        --bg: #f5f1e8;
+        --panel: #fffdf7;
+        --text: #1c1917;
+        --muted: #57534e;
+        --line: #d6d3d1;
+        --accent: #0f766e;
+        --accent-dark: #115e59;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Avenir Next", "Segoe UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 16px 56px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.9rem;
+      }
+
+      .sub {
+        margin: 0 0 18px;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      @media (min-width: 860px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      label {
+        display: block;
+        font-size: 0.92rem;
+        margin-bottom: 4px;
+      }
+
+      input,
+      textarea,
+      select,
+      button {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        font: inherit;
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 2px solid color-mix(in srgb, var(--accent), white 50%);
+        outline-offset: 1px;
+      }
+
+      textarea {
+        min-height: 90px;
+        resize: vertical;
+      }
+
+      .row {
+        margin-bottom: 10px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .actions button {
+        width: auto;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+        font-weight: 600;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-dark);
+      }
+
+      .status {
+        margin-top: 8px;
+        color: var(--muted);
+        min-height: 1.5em;
+      }
+
+      .transcript {
+        margin-top: 18px;
+      }
+
+      .summary {
+        margin-top: 12px;
+      }
+
+      .summary-actions {
+        margin-top: 10px;
+      }
+
+      .summary-actions button {
+        width: auto;
+      }
+
+      .turn {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        animation: fade 180ms ease-out;
+      }
+
+      .meta {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>LLM Discourses</h1>
+      <p class="sub">Let two models talk to each other from one kickoff prompt.</p>
+
+      <div class="grid">
+        <section class="card">
+          <h2>LLM 1</h2>
+          <div class="row">
+            <label for="provider1">Provider</label>
+            <select id="provider1">
+              <option value="chatgpt">ChatGPT</option>
+              <option value="claude">Claude</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="model1">Model</label>
+            <input id="model1" value="gpt-4.1-2025-04-14" />
+          </div>
+          <div class="row">
+            <label for="key1">API Key</label>
+            <input id="key1" type="password" placeholder="sk-... or sk-ant-..." />
+          </div>
+          <div class="row">
+            <label for="turns1">Max turns</label>
+            <input id="turns1" type="number" min="0" max="20" value="3" />
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>LLM 2</h2>
+          <div class="row">
+            <label for="provider2">Provider</label>
+            <select id="provider2">
+              <option value="claude">Claude</option>
+              <option value="chatgpt">ChatGPT</option>
+            </select>
+          </div>
+          <div class="row">
+            <label for="model2">Model</label>
+            <input id="model2" value="claude-sonnet-4-5" />
+          </div>
+          <div class="row">
+            <label for="key2">API Key</label>
+            <input id="key2" type="password" placeholder="sk-... or sk-ant-..." />
+          </div>
+          <div class="row">
+            <label for="turns2">Max turns</label>
+            <input id="turns2" type="number" min="0" max="20" value="3" />
+          </div>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top: 12px">
+        <div class="row">
+          <label for="kickoff">Kickoff prompt</label>
+          <textarea id="kickoff" placeholder="Discuss whether AI pair-programming improves code quality."></textarea>
+        </div>
+        <div class="actions">
+          <button id="runBtn" class="btn-primary">Start Conversation</button>
+        </div>
+        <p class="status" id="status"></p>
+      </section>
+
+      <section class="transcript" id="transcript"></section>
+      <section class="summary" id="sessionSummary"></section>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const statusEl = $("status");
+      const transcriptEl = $("transcript");
+      const sessionSummaryEl = $("sessionSummary");
+      const runBtn = $("runBtn");
+      let sessionTurns = [];
+      let lastSessionMeta = null;
+
+      runBtn.addEventListener("click", async () => {
+        setStatus("Running... waiting for first turn.");
+        runBtn.disabled = true;
+        transcriptEl.innerHTML = "";
+        sessionSummaryEl.innerHTML = "";
+        sessionTurns = [];
+        lastSessionMeta = null;
+
+        const body = {
+          kickoffPrompt: $("kickoff").value,
+          llm1: {
+            provider: $("provider1").value,
+            model: $("model1").value.trim(),
+            apiKey: $("key1").value.trim(),
+            maxTurns: Number($("turns1").value)
+          },
+          llm2: {
+            provider: $("provider2").value,
+            model: $("model2").value.trim(),
+            apiKey: $("key2").value.trim(),
+            maxTurns: Number($("turns2").value)
+          }
+        };
+
+        try {
+          await streamConversation(body);
+        } catch (error) {
+          setStatus(error.message || "Unexpected error.");
+        } finally {
+          runBtn.disabled = false;
+        }
+      });
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      async function streamConversation(body) {
+        const response = await fetch("/api/run/stream", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => null);
+          throw new Error(data?.error || "Request failed.");
+        }
+
+        if (!response.body) {
+          throw new Error("Streaming is not supported in this browser.");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let turnCount = 0;
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) {
+            break;
+          }
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) {
+              continue;
+            }
+
+            const event = JSON.parse(trimmed);
+
+            if (event.type === "turn") {
+              turnCount += 1;
+              sessionTurns.push(event.turn);
+              appendTurn(event.turn, turnCount);
+              setStatus(
+                `Running... Turns so far -> LLM 1: ${event.turnsUsed.llm1}, LLM 2: ${event.turnsUsed.llm2}`
+              );
+            } else if (event.type === "done") {
+              lastSessionMeta = {
+                turnsUsed: event.turnsUsed,
+                usageTotals: event.usageTotals,
+                cost: event.cost,
+                kickoffPrompt: body.kickoffPrompt
+              };
+              renderSessionSummary(event);
+              setStatus(
+                `Done. Turns used -> LLM 1: ${event.turnsUsed.llm1}, LLM 2: ${event.turnsUsed.llm2}`
+              );
+            } else if (event.type === "error") {
+              throw new Error(event.error || "Run failed.");
+            }
+          }
+        }
+
+        if (turnCount === 0) {
+          transcriptEl.innerHTML = "<p>No turns were generated.</p>";
+        }
+      }
+
+      function appendTurn(turn, index) {
+        const card = document.createElement("article");
+        card.className = "turn";
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = `Turn ${index} - ${turn.speaker} (${turn.provider} / ${turn.model})`;
+
+        const content = document.createElement("div");
+        content.textContent = turn.text;
+
+        card.append(meta, content);
+        transcriptEl.appendChild(card);
+      }
+
+      function renderSessionSummary(event) {
+        const hasNumericCost = typeof event?.cost?.totalUsd === "number";
+        const costText = hasNumericCost ? formatUsd(event.cost.totalUsd) : "Unavailable";
+        const estimateTag = event?.cost?.estimated ? "Estimated" : "";
+        const completenessText = event?.cost?.complete
+          ? ""
+          : " (partial - some model pricing unknown)";
+        const usage = event?.usageTotals || {};
+
+        sessionSummaryEl.innerHTML = `
+          <article class="turn">
+            <div class="meta">Session Cost ${estimateTag ? `- ${estimateTag}` : ""}</div>
+            <div><strong>Total:</strong> ${costText}${completenessText}</div>
+            <div style="margin-top:6px">Tokens - input: ${usage.inputTokens || 0}, output: ${usage.outputTokens || 0}, total: ${usage.totalTokens || 0}</div>
+            <div class="summary-actions">
+              <button id="downloadMdBtn" type="button">Download Transcript (.md)</button>
+            </div>
+          </article>
+        `;
+
+        const downloadBtn = $("downloadMdBtn");
+        if (downloadBtn) {
+          downloadBtn.addEventListener("click", downloadTranscriptMarkdown);
+        }
+      }
+
+      function formatUsd(value) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 4,
+          maximumFractionDigits: 4
+        }).format(value);
+      }
+
+      function downloadTranscriptMarkdown() {
+        if (!sessionTurns.length || !lastSessionMeta) {
+          setStatus("No transcript available to download yet.");
+          return;
+        }
+
+        const markdown = buildTranscriptMarkdown();
+        const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `llm-discourse-${stamp}.md`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function buildTranscriptMarkdown() {
+        const lines = [];
+        const kickoff = (lastSessionMeta.kickoffPrompt || "").trim();
+        const turnsUsed = lastSessionMeta.turnsUsed || {};
+        const usage = lastSessionMeta.usageTotals || {};
+        const cost = lastSessionMeta.cost || {};
+        const generatedAt = new Date().toISOString();
+
+        lines.push("# LLM Discourses Transcript");
+        lines.push("");
+        lines.push(`- Generated: ${generatedAt}`);
+        lines.push(`- Turns used: LLM 1 = ${turnsUsed.llm1 || 0}, LLM 2 = ${turnsUsed.llm2 || 0}`);
+        lines.push(
+          `- Tokens: input = ${usage.inputTokens || 0}, output = ${usage.outputTokens || 0}, total = ${usage.totalTokens || 0}`
+        );
+
+        if (typeof cost.totalUsd === "number") {
+          lines.push(
+            `- Cost (USD): ${formatUsd(cost.totalUsd)}${cost.complete ? "" : " (partial, some model pricing unknown)"}`
+          );
+        } else {
+          lines.push("- Cost (USD): unavailable");
+        }
+
+        if (kickoff) {
+          lines.push("");
+          lines.push("## Kickoff Prompt");
+          lines.push("");
+          lines.push(kickoff);
+        }
+
+        lines.push("");
+        lines.push("## Conversation");
+        lines.push("");
+
+        sessionTurns.forEach((turn, index) => {
+          lines.push(`### Turn ${index + 1}: ${turn.speaker}`);
+          lines.push("");
+          lines.push(`_Provider: ${turn.provider} | Model: ${turn.model}_`);
+          lines.push("");
+          lines.push((turn.text || "").trim());
+          lines.push("");
+        });
+
+        return lines.join("\n").trimEnd() + "\n";
+      }
+    </script>
+  </body>
+</html>
