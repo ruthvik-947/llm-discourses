@@ -331,8 +331,7 @@ async function callChatGPT({ apiKey, model, systemPrompt, userPrompt }) {
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
-      ],
-      temperature: 0.8
+      ]
     })
   });
 
