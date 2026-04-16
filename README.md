@@ -4,7 +4,7 @@ Let up to four LLMs talk to each other from one kickoff prompt. Pick any models 
 
 ## Run it
 
-It's a single static HTML file — no build, no server, no install.
+It's a single static HTML file:
 
 ```
 open index.html
