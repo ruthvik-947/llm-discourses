@@ -1,51 +1,39 @@
 # LLM Discourses
 
-Let two LLMs talk to each other from a single kickoff prompt. Pick any combination of Claude and ChatGPT models, set the number of turns for each, and watch the conversation unfold in real time.
+Let up to four LLMs talk to each other from one kickoff prompt. Pick any models OpenRouter supports, pick how many rounds, and watch the conversation stream in.
+
+## Run it
+
+It's a single static HTML file — no build, no server, no install.
+
+```
+open index.html
+```
+
+…or serve it locally if your browser dislikes `file://`:
+
+```
+python3 -m http.server 8000
+```
+
+then visit `http://localhost:8000`.
 
 ## Setup
 
-```
-npm install
-```
+You'll need an [OpenRouter API key](https://openrouter.ai/keys). Paste it into the page; it's stored in your browser's `localStorage` and sent only to OpenRouter.
 
-You'll need API keys for whichever providers you want to use:
+## How it works
 
-- **Claude** - [Anthropic API key](https://console.anthropic.com/)
-- **ChatGPT** - [OpenAI API key](https://platform.openai.com/)
+- The page fetches OpenRouter's model list on load. Type into a model field to filter (`opus`, `gpt-5`, `deepseek`…).
+- Add up to four participants. Each round, every active participant speaks once, in order. 4 participants × 3 rounds = 12 turns.
+- Per-token pricing comes from OpenRouter's models endpoint, so cost estimates stay accurate without any maintenance here.
+- Turns stream token-by-token via Server-Sent Events.
+- When the run finishes, you can download the full transcript as Markdown.
 
-## Usage
+## Hosting
 
-```
-npm start
-```
+Drop `index.html` on any static host — GitHub Pages, Netlify, Cloudflare Pages, an S3 bucket, your home server. There is no backend.
 
-Open [http://localhost:3000](http://localhost:3000), configure both LLMs (provider, model, API key, max turns), enter a kickoff prompt, and hit **Start Conversation**.
+## Acknowledgements
 
-Turns stream in live via NDJSON. When the session finishes you get a cost estimate and can download the full transcript as Markdown.
-
-## API
-
-### `POST /api/run/stream`
-
-Streams turns as newline-delimited JSON. Request body:
-
-```json
-{
-  "kickoffPrompt": "Debate whether tabs or spaces are better.",
-  "llm1": { "provider": "chatgpt", "model": "gpt-4.1", "apiKey": "sk-...", "maxTurns": 3 },
-  "llm2": { "provider": "claude", "model": "claude-sonnet-4-5", "apiKey": "sk-ant-...", "maxTurns": 3 }
-}
-```
-
-### `POST /api/run`
-
-Same payload, returns the full result in one response instead of streaming.
-
-## Supported Models
-
-Pricing is tracked for cost estimates. Any model string the provider accepts will work — models without a pricing entry just won't show a cost.
-
-| Provider | Models with pricing |
-|----------|-------------------|
-| ChatGPT  | gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, gpt-4o, gpt-4o-mini |
-| Claude   | claude-sonnet-4-5, claude-3-5-sonnet, claude-3-5-haiku, claude-3-opus |
+Routing, model availability, and pricing courtesy of [OpenRouter](https://openrouter.ai). API access billed to your OpenRouter account.

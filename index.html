@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LLM Discourses</title>
+    <style>
+      :root {
+        --bg: #f4efe6;
+        --bg-sunk: #ebe4d6;
+        --ink: #1f1b17;
+        --ink-soft: #4a433b;
+        --ink-muted: #7a7267;
+        --rule: #c9bfa8;
+
+        --accent-0: #7a2e1f;
+        --accent-1: #2f4a3a;
+        --accent-2: #8a6d2a;
+        --accent-3: #3d4a5e;
+
+        --tint-0: color-mix(in oklch, var(--accent-0) 4%, transparent);
+        --tint-1: color-mix(in oklch, var(--accent-1) 4%, transparent);
+        --tint-2: color-mix(in oklch, var(--accent-2) 4%, transparent);
+        --tint-3: color-mix(in oklch, var(--accent-3) 4%, transparent);
+
+        --focus: #d4a73a;
+        --error: #8a2a1a;
+
+        --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+        --font-body: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 17px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      .wrap {
+        max-width: 740px;
+        margin: 0 auto;
+        padding: clamp(24px, 5vw, 56px) 20px 80px;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: clamp(1.9rem, 3.2vw, 2.4rem);
+        letter-spacing: -0.01em;
+        margin: 0 0 4px;
+      }
+
+      .sub {
+        color: var(--ink-soft);
+        margin: 0 0 32px;
+        font-style: italic;
+      }
+
+      label {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 0.92rem;
+        color: var(--ink-soft);
+        margin-bottom: 6px;
+      }
+
+      textarea, input, select {
+        width: 100%;
+        padding: 10px 12px;
+        background: var(--bg-sunk);
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+      }
+
+      textarea {
+        font-size: 1rem;
+        line-height: 1.5;
+        resize: vertical;
+      }
+
+      textarea#kickoff {
+        min-height: 130px;
+        padding: 14px 16px;
+      }
+
+      input:focus, select:focus, textarea:focus {
+        outline: 2px solid var(--focus);
+        outline-offset: 1px;
+        border-color: transparent;
+      }
+
+      .key-field { margin-bottom: 22px; }
+      .kickoff { margin-bottom: 16px; }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-top: 4px;
+      }
+
+      .btn-primary {
+        font-family: var(--font-display);
+        font-size: 0.98rem;
+        padding: 10px 22px;
+        background: var(--ink);
+        color: var(--bg);
+        border: 1px solid var(--ink);
+        border-radius: 3px;
+        cursor: pointer;
+        letter-spacing: 0.01em;
+        transition: background 140ms ease, border-color 140ms ease;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--accent-0);
+        border-color: var(--accent-0);
+      }
+
+      .btn-primary:disabled { opacity: 0.45; cursor: default; }
+
+      .btn-ghost {
+        font-family: var(--font-body);
+        font-size: 0.87rem;
+        padding: 6px 14px;
+        background: transparent;
+        color: var(--ink-soft);
+        border: 1px solid var(--rule);
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      .btn-ghost:hover { color: var(--ink); border-color: var(--ink-soft); }
+
+      .btn-text {
+        font-family: var(--font-display);
+        font-size: 0.92rem;
+        background: none;
+        border: none;
+        padding: 4px 0;
+        color: var(--ink-soft);
+        cursor: pointer;
+        text-decoration: underline;
+        text-decoration-color: var(--rule);
+        text-underline-offset: 4px;
+      }
+
+      .btn-text:hover { color: var(--ink); text-decoration-color: var(--ink-soft); }
+      .btn-text:disabled { opacity: 0.4; cursor: default; text-decoration: none; }
+
+      .status {
+        color: var(--ink-muted);
+        font-size: 0.9rem;
+        min-height: 1.5em;
+        font-style: italic;
+        margin: 10px 0 0;
+      }
+
+      .status.error { color: var(--error); font-style: normal; }
+
+      details.config {
+        margin: 28px 0;
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+      }
+
+      details.config > summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 14px 0;
+        font-family: var(--font-display);
+        font-size: 0.95rem;
+        color: var(--ink-soft);
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+      }
+
+      details.config > summary::-webkit-details-marker { display: none; }
+
+      details.config > summary::before {
+        content: "▸";
+        font-size: 0.75rem;
+        color: var(--ink-muted);
+        transition: transform 140ms ease;
+        flex-shrink: 0;
+      }
+
+      details.config[open] > summary::before { transform: rotate(90deg); }
+
+      .summary-preview {
+        color: var(--ink-muted);
+        font-style: italic;
+        font-size: 0.88rem;
+        text-align: right;
+        margin-left: auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .config-body { padding: 4px 0 24px; }
+
+      .rounds-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 22px;
+        padding-bottom: 22px;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      @media (min-width: 480px) {
+        .rounds-row {
+          grid-template-columns: 110px 1fr;
+          align-items: center;
+          gap: 16px;
+        }
+        .rounds-row label { margin-bottom: 0; }
+      }
+
+      .rounds-row .hint { margin-top: 0; }
+
+      .participants {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      @media (min-width: 680px) {
+        .participants {
+          grid-template-columns: 1fr 1fr;
+          gap: 22px 28px;
+        }
+      }
+
+      .participant-card {
+        position: relative;
+        padding: 14px 16px 16px;
+        background: var(--bg-sunk);
+        border: 1px solid var(--rule);
+        border-left: 3px solid var(--accent);
+        border-radius: 3px;
+      }
+
+      .participant-card[data-slot="0"] { --accent: var(--accent-0); }
+      .participant-card[data-slot="1"] { --accent: var(--accent-1); }
+      .participant-card[data-slot="2"] { --accent: var(--accent-2); }
+      .participant-card[data-slot="3"] { --accent: var(--accent-3); }
+
+      .participant-card h3 {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 0.78rem;
+        margin: 0 0 12px;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .remove-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        background: none;
+        border: none;
+        color: var(--ink-muted);
+        font-size: 1.1rem;
+        cursor: pointer;
+        line-height: 1;
+        border-radius: 3px;
+      }
+
+      .remove-btn:hover { color: var(--accent); background: color-mix(in oklch, var(--accent) 10%, transparent); }
+
+      .field { margin-bottom: 12px; }
+      .field:last-child { margin-bottom: 0; }
+      .field label {
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+      }
+
+      .hint {
+        display: block;
+        font-size: 0.8rem;
+        color: var(--ink-muted);
+        margin-top: 5px;
+        font-style: italic;
+        line-height: 1.4;
+      }
+
+      .add-row { margin-top: 18px; text-align: center; }
+
+      .transcript { margin-top: 36px; }
+
+      .turn {
+        padding: 16px 0 18px 22px;
+        margin-bottom: 10px;
+        border-left: 2px solid var(--accent);
+        background: var(--tint);
+        animation: fade 220ms ease-out;
+      }
+
+      .turn[data-slot="0"] { --accent: var(--accent-0); --tint: var(--tint-0); }
+      .turn[data-slot="1"] { --accent: var(--accent-1); --tint: var(--tint-1); }
+      .turn[data-slot="2"] { --accent: var(--accent-2); --tint: var(--tint-2); }
+      .turn[data-slot="3"] { --accent: var(--accent-3); --tint: var(--tint-3); }
+
+      .turn-meta {
+        font-size: 0.82rem;
+        color: var(--ink-muted);
+        margin-bottom: 10px;
+        letter-spacing: 0.01em;
+      }
+
+      .turn-meta .name {
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      .turn-body {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        line-height: 1.6;
+      }
+
+      .turn-body.streaming::after {
+        content: "▍";
+        color: var(--accent);
+        animation: blink 1s step-end infinite;
+        margin-left: 2px;
+      }
+
+      @keyframes fade {
+        from { opacity: 0; transform: translateY(3px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes blink {
+        50% { opacity: 0; }
+      }
+
+      .empty-state {
+        padding: 8px 0 0;
+        color: var(--ink-muted);
+        font-style: italic;
+        line-height: 1.6;
+        max-width: 56ch;
+      }
+
+      .session-footer {
+        margin-top: 44px;
+        padding-top: 18px;
+        border-top: 1px solid var(--rule);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+        align-items: center;
+        font-size: 0.88rem;
+        color: var(--ink-muted);
+      }
+
+      .session-footer strong { color: var(--ink); font-weight: 600; }
+      .session-footer .spacer { flex: 1; }
+      .session-footer .sep { color: var(--rule); }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>LLM Discourses</h1>
+      <p class="sub">Up to four models, one kickoff prompt. Watch them talk.</p>
+
+      <div class="field key-field">
+        <label for="apiKey">OpenRouter API key</label>
+        <input id="apiKey" type="password" placeholder="sk-or-..." autocomplete="off" />
+        <span class="hint">Stored in this browser only. Sent directly to OpenRouter.</span>
+      </div>
+
+      <div class="kickoff">
+        <label for="kickoff">Kickoff prompt</label>
+        <textarea id="kickoff" placeholder="Something you'd genuinely want a second opinion on — a claim to stress-test, a design tradeoff, a passage to critique."></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="runBtn" class="btn-primary">Start conversation</button>
+      </div>
+      <p class="status" id="status"></p>
+
+      <details class="config" id="config" open>
+        <summary>
+          <span>Participants &amp; rounds</span>
+          <span class="summary-preview" id="configPreview"></span>
+        </summary>
+        <div class="config-body">
+          <div class="rounds-row">
+            <label for="rounds">Rounds</label>
+            <div>
+              <input id="rounds" type="number" min="1" max="10" value="3" />
+              <span class="hint">One round = every participant speaks once.</span>
+            </div>
+          </div>
+
+          <div id="participants" class="participants"></div>
+
+          <div class="add-row">
+            <button id="addBtn" class="btn-text" type="button">+ Add participant</button>
+          </div>
+        </div>
+      </details>
+
+      <section class="transcript" id="transcript" aria-live="polite">
+        <p class="empty-state" id="emptyState">Configure participants below, then start the conversation. The transcript appears here as they reply.</p>
+      </section>
+
+      <section id="sessionSummary"></section>
+
+      <datalist id="modelList"></datalist>
+    </main>
+
+    <script>
+      const STORAGE_KEY = "llm-discourses:v2";
+      const SLOT_LABELS = ["Speaker A", "Speaker B", "Speaker C", "Speaker D"];
+      const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
+
+      const state = {
+        apiKey: "",
+        rounds: 3,
+        participants: [
+          { slot: 0, enabled: true,  name: "", model: "" },
+          { slot: 1, enabled: true,  name: "", model: "" },
+          { slot: 2, enabled: false, name: "", model: "" },
+          { slot: 3, enabled: false, name: "", model: "" }
+        ],
+        models: [],
+        modelMap: new Map(),
+        transcript: [],
+        running: false,
+        lastRunMeta: null
+      };
+
+      const $ = (id) => document.getElementById(id);
+
+      function loadPersisted() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          if (typeof saved.apiKey === "string") state.apiKey = saved.apiKey;
+          if (Number.isFinite(saved.rounds)) state.rounds = saved.rounds;
+          if (Array.isArray(saved.participants) && saved.participants.length === 4) {
+            state.participants = saved.participants.map((p, i) => ({
+              slot: i,
+              enabled: !!p.enabled,
+              name: typeof p.name === "string" ? p.name : "",
+              model: typeof p.model === "string" ? p.model : ""
+            }));
+          }
+        } catch (_) { /* ignore corrupt storage */ }
+      }
+
+      function persist() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            apiKey: state.apiKey,
+            rounds: state.rounds,
+            participants: state.participants
+          }));
+        } catch (_) { /* quota / private mode — skip */ }
+      }
+
+      function activeParticipants() {
+        return state.participants.filter((p) => p.enabled);
+      }
+
+      function displayName(p) {
+        return (p.name && p.name.trim()) || p.model || SLOT_LABELS[p.slot];
+      }
+
+      function formatUsd(value, fractionDigits = 4) {
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: fractionDigits,
+          maximumFractionDigits: fractionDigits
+        }).format(value);
+      }
+
+      async function fetchModels() {
+        try {
+          const res = await fetch(`${OPENROUTER_BASE}/models`);
+          if (!res.ok) throw new Error(`Models fetch failed (${res.status})`);
+          const json = await res.json();
+          const models = (json.data || []).map((m) => ({
+            id: m.id,
+            name: m.name || m.id,
+            inputPerToken: parseFloat(m.pricing?.prompt || "0"),
+            outputPerToken: parseFloat(m.pricing?.completion || "0")
+          }));
+          models.sort((a, b) => a.name.localeCompare(b.name));
+          state.models = models;
+          state.modelMap = new Map(models.map((m) => [m.id, m]));
+          renderDatalist();
+        } catch (err) {
+          setStatus(`Could not load OpenRouter model list: ${err.message}. You can still type a model slug manually.`, true);
+        }
+      }
+
+      function renderDatalist() {
+        const list = $("modelList");
+        list.innerHTML = "";
+        state.models.forEach((m) => {
+          const opt = document.createElement("option");
+          opt.value = m.id;
+          const inMillion = m.inputPerToken * 1_000_000;
+          const outMillion = m.outputPerToken * 1_000_000;
+          const priceLabel = inMillion || outMillion
+            ? ` — $${inMillion.toFixed(2)}/$${outMillion.toFixed(2)} per 1M`
+            : "";
+          opt.label = `${m.name}${priceLabel}`;
+          list.appendChild(opt);
+        });
+      }
+
+      function renderParticipants() {
+        const container = $("participants");
+        container.innerHTML = "";
+        state.participants.forEach((p) => {
+          if (!p.enabled) return;
+          const card = document.createElement("div");
+          card.className = "participant-card";
+          card.dataset.slot = p.slot;
+
+          const heading = document.createElement("h3");
+          heading.textContent = SLOT_LABELS[p.slot];
+          card.appendChild(heading);
+
+          if (activeParticipants().length > 2) {
+            const remove = document.createElement("button");
+            remove.type = "button";
+            remove.className = "remove-btn";
+            remove.title = `Remove ${SLOT_LABELS[p.slot]}`;
+            remove.innerHTML = "&times;";
+            remove.addEventListener("click", () => {
+              p.enabled = false;
+              persist();
+              renderAll();
+            });
+            card.appendChild(remove);
+          }
+
+          card.appendChild(field({
+            id: `name-${p.slot}`,
+            labelText: "Display name",
+            input: textInput({
+              value: p.name,
+              placeholder: p.model || "Optional",
+              onInput: (v) => { p.name = v; persist(); updateConfigPreview(); }
+            })
+          }));
+
+          card.appendChild(field({
+            id: `model-${p.slot}`,
+            labelText: "Model",
+            input: textInput({
+              value: p.model,
+              placeholder: "Type to search, e.g. opus",
+              list: "modelList",
+              onInput: (v) => { p.model = v; persist(); updateConfigPreview(); }
+            })
+          }));
+
+          container.appendChild(card);
+        });
+
+        const addBtn = $("addBtn");
+        const enabledCount = activeParticipants().length;
+        addBtn.disabled = enabledCount >= 4;
+        addBtn.textContent = enabledCount >= 4 ? "Maximum 4 participants" : "+ Add participant";
+      }
+
+      function field({ id, labelText, input }) {
+        const wrap = document.createElement("div");
+        wrap.className = "field";
+        const label = document.createElement("label");
+        label.htmlFor = id;
+        label.textContent = labelText;
+        input.id = id;
+        wrap.append(label, input);
+        return wrap;
+      }
+
+      function textInput({ value, placeholder, list, onInput }) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = value || "";
+        if (placeholder) input.placeholder = placeholder;
+        if (list) input.setAttribute("list", list);
+        input.addEventListener("input", () => onInput(input.value));
+        return input;
+      }
+
+      function updateConfigPreview() {
+        const active = activeParticipants();
+        const names = active.map(displayName).join(" · ");
+        const totalTurns = active.length * state.rounds;
+        $("configPreview").textContent = `${names} · ${state.rounds} rounds (${totalTurns} turns)`;
+      }
+
+      function renderAll() {
+        renderParticipants();
+        updateConfigPreview();
+      }
+
+      function setStatus(text, isError = false) {
+        const el = $("status");
+        el.textContent = text;
+        el.classList.toggle("error", !!isError);
+      }
+
+      function clearTranscript() {
+        $("transcript").innerHTML = "";
+        $("sessionSummary").innerHTML = "";
+        $("sessionSummary").className = "";
+        state.transcript = [];
+      }
+
+      function appendTurnElement(participant, turnIndex, totalTurns) {
+        const article = document.createElement("article");
+        article.className = "turn";
+        article.dataset.slot = participant.slot;
+
+        const meta = document.createElement("div");
+        meta.className = "turn-meta";
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "name";
+        nameSpan.textContent = displayName(participant);
+        meta.append(nameSpan);
+        meta.append(document.createTextNode(` · ${participant.model} · turn ${turnIndex} of ${totalTurns}`));
+
+        const body = document.createElement("div");
+        body.className = "turn-body streaming";
+        body.textContent = "";
+
+        article.append(meta, body);
+        $("transcript").appendChild(article);
+        return body;
+      }
+
+      function buildSystemPrompt(speaker, others) {
+        const otherNames = others.map(displayName).join(", ");
+        return `You are ${displayName(speaker)} in a multi-participant discussion. ` +
+          `The other participants are: ${otherNames}. ` +
+          `Respond in your own voice, building on, challenging, or extending what's been said. ` +
+          `Be substantive and direct. Address other participants by name when relevant. ` +
+          `Do not roleplay as anyone else; speak only as ${displayName(speaker)}.`;
+      }
+
+      function buildUserMessage(kickoff, transcript, speaker) {
+        const lines = [];
+        lines.push(`Kickoff prompt:\n${kickoff.trim()}`);
+        if (transcript.length) {
+          lines.push("");
+          lines.push("--- Discussion so far ---");
+          transcript.forEach((t) => {
+            lines.push(`${t.name}:\n${t.text.trim()}`);
+            lines.push("");
+          });
+          lines.push("--- End of prior discussion ---");
+        }
+        lines.push("");
+        lines.push(`Now respond as ${displayName(speaker)}.`);
+        return lines.join("\n");
+      }
+
+      async function streamTurn({ speaker, others, kickoff, bodyEl }) {
+        const messages = [
+          { role: "system", content: buildSystemPrompt(speaker, others) },
+          { role: "user", content: buildUserMessage(kickoff, state.transcript, speaker) }
+        ];
+
+        const res = await fetch(`${OPENROUTER_BASE}/chat/completions`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${state.apiKey}`,
+            "HTTP-Referer": location.origin || "https://github.com",
+            "X-Title": "LLM Discourses"
+          },
+          body: JSON.stringify({
+            model: speaker.model,
+            messages,
+            stream: true,
+            usage: { include: true }
+          })
+        });
+
+        if (!res.ok) {
+          let detail = `${res.status} ${res.statusText}`;
+          try {
+            const errJson = await res.json();
+            if (errJson?.error?.message) detail = errJson.error.message;
+          } catch (_) { /* ignore */ }
+          throw new Error(detail);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let text = "";
+        let usage = null;
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data:")) continue;
+            const data = trimmed.slice(5).trim();
+            if (data === "[DONE]") continue;
+            let json;
+            try { json = JSON.parse(data); } catch { continue; }
+            const delta = json.choices?.[0]?.delta?.content;
+            if (delta) {
+              text += delta;
+              bodyEl.textContent = text;
+            }
+            if (json.usage) usage = json.usage;
+          }
+        }
+
+        bodyEl.classList.remove("streaming");
+        return { text, usage };
+      }
+
+      async function runConversation() {
+        if (state.running) return;
+
+        const kickoff = $("kickoff").value.trim();
+        if (!kickoff) { setStatus("Write a kickoff prompt first.", true); return; }
+        if (!state.apiKey.trim()) { setStatus("Add your OpenRouter API key first.", true); return; }
+
+        const active = activeParticipants();
+        const missing = active.filter((p) => !p.model.trim());
+        if (missing.length) {
+          setStatus(`Pick a model for ${missing.map((p) => SLOT_LABELS[p.slot]).join(", ")}.`, true);
+          return;
+        }
+
+        const totalTurns = active.length * state.rounds;
+        const empty = $("emptyState");
+        if (empty) empty.remove();
+        clearTranscript();
+        state.running = true;
+        $("runBtn").disabled = true;
+
+        const usageBySlot = new Map();
+        let totalCost = 0;
+        let pricingComplete = true;
+        let turnIndex = 0;
+
+        try {
+          for (let round = 0; round < state.rounds; round++) {
+            for (let i = 0; i < active.length; i++) {
+              const speaker = active[i];
+              const others = active.filter((p) => p !== speaker);
+              turnIndex++;
+              setStatus(`Streaming turn ${turnIndex} of ${totalTurns}. Waiting on ${displayName(speaker)}...`);
+
+              const bodyEl = appendTurnElement(speaker, turnIndex, totalTurns);
+              const { text, usage } = await streamTurn({ speaker, others, kickoff, bodyEl });
+
+              state.transcript.push({
+                slot: speaker.slot,
+                name: displayName(speaker),
+                model: speaker.model,
+                text,
+                usage
+              });
+
+              if (usage) {
+                const prior = usageBySlot.get(speaker.slot) || { prompt_tokens: 0, completion_tokens: 0 };
+                usageBySlot.set(speaker.slot, {
+                  prompt_tokens: prior.prompt_tokens + (usage.prompt_tokens || 0),
+                  completion_tokens: prior.completion_tokens + (usage.completion_tokens || 0)
+                });
+
+                const pricing = state.modelMap.get(speaker.model);
+                if (pricing) {
+                  totalCost += (usage.prompt_tokens || 0) * pricing.inputPerToken;
+                  totalCost += (usage.completion_tokens || 0) * pricing.outputPerToken;
+                } else {
+                  pricingComplete = false;
+                }
+              }
+            }
+          }
+
+          state.lastRunMeta = { kickoff, totalCost, pricingComplete, usageBySlot };
+          renderSessionSummary();
+          setStatus(`Finished after ${turnIndex} turns.`);
+        } catch (err) {
+          setStatus(`Stopped: ${err.message}`, true);
+          const last = $("transcript").querySelector(".turn-body.streaming");
+          if (last) last.classList.remove("streaming");
+        } finally {
+          state.running = false;
+          $("runBtn").disabled = false;
+        }
+      }
+
+      function renderSessionSummary() {
+        const totalTokens = Array.from(state.lastRunMeta.usageBySlot.values())
+          .reduce((sum, u) => sum + (u.prompt_tokens || 0) + (u.completion_tokens || 0), 0);
+
+        const cost = state.lastRunMeta.totalCost;
+        const costText = state.lastRunMeta.pricingComplete && cost > 0
+          ? formatUsd(cost)
+          : (cost > 0 ? `${formatUsd(cost)} (partial)` : "n/a");
+
+        const footer = $("sessionSummary");
+        footer.className = "session-footer";
+        footer.innerHTML = `
+          <span><strong>${totalTokens.toLocaleString()}</strong> tokens</span>
+          <span class="sep">·</span>
+          <span>cost <strong>${costText}</strong></span>
+          <span class="spacer"></span>
+          <button id="downloadMdBtn" class="btn-ghost" type="button">Download transcript</button>
+        `;
+        $("downloadMdBtn").addEventListener("click", downloadTranscriptMarkdown);
+      }
+
+      function downloadTranscriptMarkdown() {
+        if (!state.transcript.length) { setStatus("No transcript to download yet.", true); return; }
+        const md = buildTranscriptMarkdown();
+        const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `llm-discourse-${stamp}.md`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function buildTranscriptMarkdown() {
+        const meta = state.lastRunMeta;
+        const lines = ["# LLM Discourses Transcript", ""];
+        lines.push(`- Generated: ${new Date().toISOString()}`);
+
+        const totals = { prompt: 0, completion: 0 };
+        meta.usageBySlot.forEach((u) => {
+          totals.prompt += u.prompt_tokens || 0;
+          totals.completion += u.completion_tokens || 0;
+        });
+        lines.push(`- Tokens: ${totals.prompt + totals.completion} total (${totals.prompt} input / ${totals.completion} output)`);
+
+        if (meta.totalCost > 0) {
+          lines.push(`- Cost: ${formatUsd(meta.totalCost)}${meta.pricingComplete ? "" : " (partial — some pricing unknown)"}`);
+        }
+
+        if (meta.kickoff) {
+          lines.push("", "## Kickoff", "", meta.kickoff);
+        }
+
+        lines.push("", "## Conversation", "");
+        state.transcript.forEach((t, i) => {
+          lines.push(`### ${t.name} — turn ${i + 1}`);
+          lines.push(`*${t.model}*`, "");
+          lines.push((t.text || "").trim(), "");
+        });
+
+        return lines.join("\n").trimEnd() + "\n";
+      }
+
+      // --- wire up ---
+      loadPersisted();
+
+      $("apiKey").value = state.apiKey;
+      $("apiKey").addEventListener("input", (e) => { state.apiKey = e.target.value; persist(); });
+
+      $("rounds").value = state.rounds;
+      $("rounds").addEventListener("input", (e) => {
+        const n = Math.max(1, Math.min(10, Number(e.target.value) || 1));
+        state.rounds = n;
+        if (Number(e.target.value) !== n) e.target.value = n;
+        persist();
+        updateConfigPreview();
+      });
+
+      $("addBtn").addEventListener("click", () => {
+        const next = state.participants.find((p) => !p.enabled);
+        if (next) { next.enabled = true; persist(); renderAll(); }
+      });
+
+      $("runBtn").addEventListener("click", runConversation);
+
+      renderAll();
+      fetchModels();
+    </script>
+  </body>
+</html>

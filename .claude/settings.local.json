@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(ls -la .git*)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "WebFetch(domain:openai.com)",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:platform.openai.com)",
+      "WebFetch(domain:claude.com)",
+      "WebSearch",
+      "WebFetch(domain:developers.openai.com)"
     ]
   }
 }
